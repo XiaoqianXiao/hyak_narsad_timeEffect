@@ -70,12 +70,12 @@ get_available_copes() {
     local base_dir="$2"
     local data_source="$3"
     
-    # Build the pre-group directory path based on data source
+    # Set pre-group directory based on data source
     local pregroup_dir
     if [[ "$data_source" == "standard" ]]; then
-        pregroup_dir="${base_dir}/groupLevel/whole_brain"
+        pregroup_dir="${base_dir}/groupLevel_timeEffect/whole_brain"
     else
-        pregroup_dir="${base_dir}/groupLevel/whole_brain/${data_source^}"  # Capitalize first letter
+        pregroup_dir="${base_dir}/groupLevel_timeEffect/whole_brain/${data_source^}"  # Capitalize first letter
     fi
     
     local task_dir="${pregroup_dir}/task-${task}"
@@ -161,7 +161,7 @@ EXAMPLES:
 
 NOTES:
     - Scripts are only generated for copes that have completed pre-group analysis
-    - Expected pre-group directory structure: {base-dir}/groupLevel/whole_brain/{data-source}/task-{phase}/cope{cope_num}/
+    - Expected pre-group directory structure: {base-dir}/groupLevel_timeEffect/whole_brain/{data-source}/task-{phase}/cope{cope_num}/
     - Run pre-group analysis first using create_pre_group_voxelWise.py
 
 EOF
@@ -300,7 +300,7 @@ IFS=':' read -r SCRIPT_SUBDIR SCRIPT_NAME <<< "$DATA_SOURCE_CONFIG"
 
 # Set script directory
 if [[ -z "$SCRIPT_DIR" ]]; then
-    SCRIPT_DIR="/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/groupLevel/${SCRIPT_SUBDIR}"
+    SCRIPT_DIR="/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/groupLevel_timeEffect/${SCRIPT_SUBDIR}"
 fi
 
 # Create script directory and logs subdirectory
@@ -317,9 +317,9 @@ for task in "${TASKS[@]}"; do
     if [[ -z "$CONTRASTS" ]]; then
         echo "Warning: No pre-group results found for task: $task"
         if [[ "$DATA_SOURCE" == "standard" ]]; then
-            echo "  Expected directory: ${BASE_DIR}/groupLevel/whole_brain/task-${task}/"
+            echo "  Expected directory: ${BASE_DIR}/groupLevel_timeEffect/whole_brain/task-${task}/"
         else
-            echo "  Expected directory: ${BASE_DIR}/groupLevel/whole_brain/${DATA_SOURCE^}/task-${task}/"
+            echo "  Expected directory: ${BASE_DIR}/groupLevel_timeEffect/whole_brain/${DATA_SOURCE^}/task-${task}/"
         fi
         continue
     fi

@@ -74,25 +74,28 @@ SCRUBBED_DIR = '/scrubbed_dir'
 
 DATA_SOURCE_CONFIGS = {
     'standard': {
-        'description': 'Standard analysis with all subjects',
-        'results_subdir': 'groupLevel/whole_brain',
-        'workflows_subdir': 'groupLevel/whole_brain',
+        'description': 'Standard group-level analysis',
         'requires_varcope': True,
-        'requires_grp': True
+        'requires_grp': True,
+        'results_subdir': 'groupLevel_timeEffect/whole_brain',
+        'workflows_subdir': 'groupLevel_timeEffect/whole_brain',
+        'script_name': 'run_group_voxelWise.py'
     },
-    'placebo': {
-        'description': 'Placebo condition only analysis',
-        'results_subdir': 'groupLevel/whole_brain/Placebo',
-        'workflows_subdir': 'groupLevel/whole_brain/Placebo',
+    'Placebo': {
+        'description': 'Placebo-specific group-level analysis',
         'requires_varcope': True,
-        'requires_grp': True
+        'requires_grp': True,
+        'results_subdir': 'groupLevel_timeEffect/whole_brain/Placebo',
+        'workflows_subdir': 'groupLevel_timeEffect/whole_brain/Placebo',
+        'script_name': 'run_group_voxelWise.py'
     },
-    'guess': {
-        'description': 'Analysis including guess condition',
-        'results_subdir': 'groupLevel/whole_brain/Guess',
-        'workflows_subdir': 'groupLevel/whole_brain/Guess',
+    'Guess': {
+        'description': 'Guess-specific group-level analysis',
         'requires_varcope': True,
-        'requires_grp': True
+        'requires_grp': True,
+        'results_subdir': 'groupLevel_timeEffect/whole_brain/Guess',
+        'workflows_subdir': 'groupLevel_timeEffect/whole_brain/Guess',
+        'script_name': 'run_group_voxelWise.py'
     }
 }
 
@@ -222,6 +225,7 @@ def run_group_level_workflow(task, contrast, analysis_type, paths, data_source_c
         except Exception as e:
             logger.error(f"Workflow execution failed: {e}")
             # Check if there are crash files
+            import glob
             crash_files = glob.glob(os.path.join(paths['workflow_dir'], 'crash-*.pklz'))
             if crash_files:
                 logger.error(f"Found crash files: {crash_files}")
@@ -343,7 +347,7 @@ def get_standard_paths(task, contrast, base_dir, data_source):
     
     # Set up directories
     results_dir = os.path.join(base_dir, data_source_config['results_subdir'])
-    workflows_dir = os.path.join(SCRUBBED_DIR, PROJECT_NAME, 'work_flows', data_source_config['workflows_subdir'])
+    workflows_dir = os.path.join(SCRUBBED_DIR, PROJECT_NAME, 'work_flows', 'groupLevel_timeEffect', data_source_config['workflows_subdir'])
     
     # Use TemplateFlow to get group mask path
     group_mask = str(tpl_get('MNI152NLin2009cAsym', resolution=2, desc='brain', suffix='mask'))
@@ -355,7 +359,7 @@ def get_standard_paths(task, contrast, base_dir, data_source):
     paths = {
         'result_dir': result_dir,
         'workflow_dir': workflow_dir,
-        # Pre-group results are still in old structure: groupLevel/task-phaseX/copeY/
+        # Pre-group results are still in old structure: groupLevel_timeEffect/task-phaseX/copeY/
         'cope_file': os.path.join(base_dir, data_source_config['results_subdir'], f'task-{task}', f'cope{contrast}', 'merged_cope.nii.gz'),
         'varcope_file': os.path.join(base_dir, data_source_config['results_subdir'], f'task-{task}', f'cope{contrast}', 'merged_varcope.nii.gz'),
         'design_file': os.path.join(base_dir, data_source_config['results_subdir'], f'task-{task}', f'cope{contrast}', 'design_files', 'design.mat'),
@@ -384,7 +388,7 @@ def get_custom_paths(task, contrast, base_dir, custom_paths_dict):
     
     # Set default paths if not provided - whole_brain moved right after groupLevel
     default_result_dir = os.path.join(base_dir, 'whole_brain', f'task-{task}', f'cope{contrast}')
-    default_workflow_dir = os.path.join(SCRUBBED_DIR, PROJECT_NAME, 'work_flows', 'groupLevel', 'whole_brain', f'task-{task}', f'cope{contrast}')
+    default_workflow_dir = os.path.join(SCRUBBED_DIR, PROJECT_NAME, 'work_flows', 'groupLevel_timeEffect', 'whole_brain', f'task-{task}', f'cope{contrast}')
     
     paths = {
         'result_dir': custom_paths_dict.get('result_dir', default_result_dir),

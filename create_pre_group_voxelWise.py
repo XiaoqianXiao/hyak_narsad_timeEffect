@@ -103,8 +103,8 @@ def get_cope_list(derivatives_dir):
     """Get list of copes and phases from derivatives directory."""
     copes = []
     # The derivatives_dir should point to the fMRI_analysis directory
-    # so we just need to append 'firstLevel'
-    first_level_dir = os.path.join(derivatives_dir, 'firstLevel')
+    # so we just need to append 'firstLevel_timeEffect'
+    first_level_dir = os.path.join(derivatives_dir, 'firstLevel_timeEffect')
     
     logger.info(f"Looking for first level directory at: {first_level_dir}")
     
@@ -294,12 +294,12 @@ Examples:
     
     # Use container paths directly since this script runs inside the container
     logger.info("Using container paths directly")
-    output_dir = '/data/NARSAD/MRI/derivatives/fMRI_analysis/groupLevel'
+    output_dir = '/data/NARSAD/MRI/derivatives/fMRI_analysis/groupLevel_timeEffect'
     derivatives_dir = '/data/NARSAD/MRI/derivatives/fMRI_analysis'
     
     # Set script directory - use default workdir/pregroup structure
     scrubbed_dir = os.getenv('SCRUBBED_DIR', '/scrubbed_dir')
-    workdir = Path(scrubbed_dir) / 'NARSAD' / 'work_flows' / 'groupLevel'
+    workdir = Path(scrubbed_dir) / 'NARSAD' / 'work_flows' / 'groupLevel_timeEffect'
     script_dir = workdir / 'pregroup'
     
     # Ensure script directory is absolute and in a writable location
@@ -320,7 +320,7 @@ Examples:
                 fallback_locations = [
                     Path("/tmp") / "narsad_slurm_scripts" / "pregroup",
                     Path("/tmp") / "nipype_slurm_scripts" / "pregroup",
-                    Path("/scrubbed_dir") / "temp_slurm_scripts" / "pregroup"
+                    Path("/scrubbed_dir") / "NARSAD" / "work_flows" / "groupLevel_timeEffect" / "pregroup"
                 ]
                 
                 for fallback_dir in fallback_locations:

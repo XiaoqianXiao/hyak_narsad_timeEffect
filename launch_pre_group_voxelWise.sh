@@ -28,7 +28,7 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
 fi
 
 # Scripts directory
-SCRIPTS_DIR="/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/groupLevel/pregroup"
+SCRIPTS_DIR="/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/groupLevel_timeEffect/pregroup"
 
 
 # Change to scripts directory and submit all .sh files

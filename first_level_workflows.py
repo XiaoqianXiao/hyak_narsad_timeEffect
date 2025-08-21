@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class DerivativesDataSink(BIDSDerivatives):
     """Custom data sink for first-level analysis outputs."""
-    out_path_base = 'firstLevel'
+    out_path_base = 'firstLevel_timeEffect'
 
 DATA_ITEMS = ['bold', 'mask', 'events', 'regressors', 'tr']
 DATA_ITEMS_LSS = ['bold', 'mask', 'events', 'regressors', 'tr', 'trial_ID']

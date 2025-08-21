@@ -67,6 +67,8 @@ DERIVATIVES_DIR = os.path.join(DATA_DIR, 'derivatives')
 FMRIPREP_FOLDER = os.path.join(DERIVATIVES_DIR, 'fmriprep')
 BEHAV_DIR = os.path.join(DATA_DIR, 'source_data/behav')
 SCRUBBED_DIR = '/scrubbed_dir'
+
+# Fix: Use consistent container path and working directory paths
 CONTAINER_PATH = "/gscratch/scrubbed/fanglab/xiaoqian/images/narsad-fmri_timeEffect_1.0.sif"
 
 # Workflow and output directories
@@ -452,7 +454,7 @@ def process_single_subject(args, layout, query):
             task = entities['task']
             
             # Create working directory
-            work_dir = os.path.join(SCRUBBED_DIR, PROJECT_NAME, f'work_flows/firstLevel/{task}')
+            work_dir = os.path.join(SCRUBBED_DIR, PROJECT_NAME, f'work_flows/firstLevel_timeEffect/{task}')
             Path(work_dir).mkdir(parents=True, exist_ok=True)
             
             try:
