@@ -82,14 +82,14 @@ def _bids2nipypeinfo(in_file, events_file, regressors_file,
     raw_conditions = list(events[condition_column].values)
     
     # Count CS- trials and create proper condition names
-    cs_count = raw_conditions.count('CS-')
+    cs_count = raw_conditions.count('CS-_first_half')
     if cs_count > 1:
-        # Multiple CS- trials: split into CS-_first and CS-_others
-        conditions = ['CS-_first', 'CS-_others']
-        # Add other unique conditions (excluding CS-)
-        other_conditions = [c for c in set(raw_conditions) if c != 'CS-']
+        # Multiple CS- trials: split into CS-_first_half_first and CS-_first_half_others
+        conditions = ['CS-_first_half_first', 'CS-_first_half_others']
+        # Add other unique conditions (excluding CS-_first_half)
+        other_conditions = [c for c in set(raw_conditions) if c != 'CS-_first_half']
         conditions.extend(other_conditions)
-        print(f"Split {cs_count} CS- trials into CS-_first and CS-_others. Total conditions: {len(conditions)}")
+        print(f"Split {cs_count} CS-_first_half trials into CS-_first_half_first and CS-_first_half_others. Total conditions: {len(conditions)}")
     else:
         # Single or no CS- trials: use original logic
         conditions = list(set(raw_conditions))
@@ -101,9 +101,9 @@ def _bids2nipypeinfo(in_file, events_file, regressors_file,
         **{k: [] for k in bunch_fields})
 
     for condition in runinfo.conditions:
-        if condition == 'CS-_first':
+        if condition == 'CS-_first_half_first':
             # First CS- trial: get the first occurrence
-            cs_events = events[events[condition_column] == 'CS-']
+            cs_events = events[events[condition_column] == 'CS-_first_half']
             if len(cs_events) > 0:
                 first_cs = cs_events.iloc[0:1]  # Get first CS- trial
                 runinfo.onsets.append(np.round(first_cs.onset.values, 3).tolist())
@@ -118,9 +118,9 @@ def _bids2nipypeinfo(in_file, events_file, regressors_file,
                 runinfo.durations.append([])
                 runinfo.amplitudes.append([])
                 
-        elif condition == 'CS-_others':
+        elif condition == 'CS-_first_half_others':
             # Other CS- trials: get all except the first
-            cs_events = events[events[condition_column] == 'CS-']
+            cs_events = events[events[condition_column] == 'CS-_first_half']
             if len(cs_events) > 1:
                 other_cs = cs_events.iloc[1:]  # Get all CS- trials except first
                 runinfo.onsets.append(np.round(other_cs.onset.values, 3).tolist())

@@ -137,7 +137,7 @@ def get_condition_names_from_events(events_file):
     Extract condition names from events file with proper CS- splitting.
     
     This function now uses the same logic as utils.py to create 7 conditions
-    by splitting multiple CS- trials into CS-_first and CS-_others.
+    by splitting multiple CS- trials into CS-_first_half_first and CS-_first_half_others.
     
     Args:
         events_file (str): Path to events CSV file
@@ -158,9 +158,9 @@ def get_condition_names_from_events(events_file):
                 # Count CS- trials and create proper condition names
                 cs_count = raw_conditions.count('CS-_first_half')
                 if cs_count > 1:
-                    # Multiple CS- trials: split into CS-_first and CS-_others
+                    # Multiple CS- trials: split into CS-_first_half_first and CS-_first_half_others
                     condition_names = ['CS-_first_half_first', 'CS-_first_half_others']
-                    # Add other unique conditions (excluding ONLY the exact 'CS-' condition)
+                    # Add other unique conditions (excluding ONLY the exact 'CS-_first_half' condition)
                     other_conditions = [c for c in set(raw_conditions) if c != 'CS-_first_half']
                     condition_names.extend(other_conditions)
                     logger.info(f"Split {cs_count} CS-_first_half trials into CS-_first_half_first and CS-_first_half_others. Total conditions: {len(condition_names)}")
@@ -314,6 +314,11 @@ def create_slurm_script(sub, inputs, work_dir, output_dir, task, container_path)
     Returns:
         str: Path to generated SLURM script
     """
+    # Validate container path
+    if not os.path.exists(container_path):
+        logger.warning(f"Container not found at: {container_path}")
+        logger.warning("Please ensure the container exists before running SLURM jobs")
+    
     slurm_script = f"""#!/bin/bash
 #SBATCH --job-name=first_level_sub_{sub}
 #SBATCH --account=fang
@@ -326,7 +331,13 @@ def create_slurm_script(sub, inputs, work_dir, output_dir, task, container_path)
 #SBATCH --output=/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/firstLevel_timeEffect/{task}_sub_{sub}_%j.out
 #SBATCH --error=/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/firstLevel_timeEffect/{task}_sub_{sub}_%j.err
 
+# Load required modules
 module load apptainer
+
+# Set environment variables
+export PYTHONPATH=/app:$PYTHONPATH
+
+# Run the analysis
 apptainer exec \\
     -B /gscratch/fang:/data \\
     -B /gscratch/scrubbed/fanglab/xiaoqian:/scrubbed_dir \\
@@ -339,6 +350,10 @@ apptainer exec \\
     try:
         with open(script_path, 'w') as f:
             f.write(slurm_script)
+        
+        # Make script executable
+        os.chmod(script_path, 0o755)
+        
         logger.info(f"SLURM script created: {script_path}")
         return script_path
     except Exception as e:

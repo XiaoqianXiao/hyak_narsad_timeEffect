@@ -53,34 +53,34 @@ def extract_cs_conditions(condition_names):
     """
     Extract and group CS- conditions from a list of condition names.
     
-    This function identifies CS-_first and CS-_others conditions that were already created
+    This function identifies CS-_first_half_first and CS-_first_half_others conditions that were already created
     by the earlier processing, and separates them from other trial types.
     
     Args:
-        condition_names (list): List of condition names (already processed with CS-_first, CS-_others)
+        condition_names (list): List of condition names (already processed with CS-_first_half_first, CS-_first_half_others)
     
     Returns:
         tuple: (cs_first_trial, cs_other_trials, other_conditions)
-            - cs_first_trial: The CS-_first condition if found
-            - cs_other_trials: The CS-_others condition if found
+            - cs_first_trial: The CS-_first_half_first condition if found
+            - cs_other_trials: The CS-_first_half_others condition if found
             - other_conditions: List of non-CS conditions
     """
     cs_first_trial = None
     cs_other_trials = []
     other_conditions = []
     
-    # Check if CS-_first and CS-_others are already in the condition names
-    if 'CS-_first' in condition_names:
-        cs_first_trial = 'CS-_first'
-        logger.info(f"Found CS-_first condition")
+    # Check if CS-_first_half_first and CS-_first_half_others are already in the condition names
+    if 'CS-_first_half_first' in condition_names:
+        cs_first_trial = 'CS-_first_half_first'
+        logger.info(f"Found CS-_first_half_first condition")
     
-    if 'CS-_others' in condition_names:
-        cs_other_trials = ['CS-_others']  # Represent as list for consistency
-        logger.info(f"Found CS-_others condition")
+    if 'CS-_first_half_others' in condition_names:
+        cs_other_trials = ['CS-_first_half_others']  # Represent as list for consistency
+        logger.info(f"Found CS-_first_half_others condition")
     
     # Process all other conditions (non-CS conditions)
     for condition in condition_names:
-        if condition not in ['CS-_first', 'CS-_others']:
+        if condition not in ['CS-_first_half_first', 'CS-_first_half_others']:
             other_conditions.append(condition)
     
     if cs_first_trial or cs_other_trials:
@@ -160,7 +160,7 @@ def create_contrasts(condition_names, contrast_type='standard'):
     if cs_first_trial:
         logger.info(f"  - First CS- trial: {cs_first_trial} (kept as separate condition)")
     if cs_other_trials:
-        logger.info(f"  - Other CS- trials: {cs_other_trials} (grouped into single 'CS-_others' condition)")
+        logger.info(f"  - Other CS- trials: {cs_other_trials} (grouped into single 'CS-_first_half_others' condition)")
     logger.info(f"  - Other trial types: {other_conditions}")
     
     return contrasts, cs_first_trial, cs_other_trials, other_conditions
@@ -195,12 +195,12 @@ def create_cs_separated_contrasts(condition_names, contrast_type='standard'):
             'first_trial': cs_first_trial,
             'other_trials': cs_other_trials,  # Grouped into single 'CS-' condition
             'regressor_type': 'enhanced_grouping',
-            'description': 'First trial CS- kept separate, other CS- trials grouped into single CS- condition',
+            'description': 'First trial CS-_first_half kept separate, other CS-_first_half trials grouped into single CS-_first_half_others condition',
             'contrast_included': True,
             'grouping_strategy': 'first_trial_separate_others_grouped',
             'condition_names': {
                 'first_trial': cs_first_trial,  # Use original name
-                'other_trials': 'CS-_others',  # Grouped condition name
+                'other_trials': 'CS-_first_half_others',  # Grouped condition name
                 'other_types': other_conditions
             }
         }
@@ -208,7 +208,7 @@ def create_cs_separated_contrasts(condition_names, contrast_type='standard'):
         if cs_first_trial:
             logger.info(f"  - First trial '{cs_first_trial}' kept as separate condition")
         if cs_other_trials:
-            logger.info(f"  - Other CS- trials grouped into single 'CS-_others' condition: {cs_other_trials}")
+            logger.info(f"  - Other CS- trials grouped into single 'CS-_first_half_others' condition: {cs_other_trials}")
     
     return contrasts, cs_first_trial, cs_other_trials, other_conditions, cs_regressor_info
 
@@ -286,7 +286,7 @@ def create_custom_contrasts(condition_names, contrast_patterns):
     if cs_first_trial:
         logger.info(f"  - First CS- trial: {cs_first_trial} (kept as separate condition)")
     if cs_other_trials:
-        logger.info(f"  - Other CS- trials: {cs_other_trials} (grouped into single 'CS-_others' condition)")
+        logger.info(f"  - Other CS- trials: {cs_other_trials} (grouped into single 'CS-_first_half_others' condition)")
     logger.info(f"  - Other trial types: {other_conditions}")
     
     return contrasts, cs_first_trial, cs_other_trials, other_conditions
@@ -910,14 +910,14 @@ def example_usage():
     # Example 1: Enhanced CS- condition grouping for voxel-wise analysis
     print("=== Example 1: Enhanced CS- condition grouping for voxel-wise analysis ===")
     
-    # Sample condition names (first trial of CS- condition will be auto-detected)
-    condition_names = ['CS-US_trial1', 'CS-US_trial2', 'CS-US_trial3', 'US', 'CS+', 'baseline']
+    # Sample condition names (first trial of CS-_first_half condition will be auto-detected)
+    condition_names = ['CS-_first_half_trial1', 'CS-_first_half_trial2', 'CS-_first_half_trial3', 'US', 'CS+', 'baseline']
     
     # Create contrasts with enhanced CS- grouping
     contrasts, cs_first_trial, cs_other_trials, other_conditions = create_contrasts(condition_names, 'standard')
     
-    print(f"First trial of CS- condition detected: {cs_first_trial}")
-    print(f"Other CS- trials grouped into single 'CS-_others' condition: {cs_other_trials}")
+    print(f"First trial of CS-_first_half condition detected: {cs_first_trial}")
+    print(f"Other CS-_first_half trials grouped into single 'CS-_first_half_others' condition: {cs_other_trials}")
     print(f"Other trial types: {other_conditions}")
     print(f"Generated contrasts: {[c[0] for c in contrasts]}")
     
@@ -973,19 +973,19 @@ def example_usage():
     print(f"Total contrasts generated: {len(contrasts)}")
     
     print("\n=== Summary ===")
-    print("The workflows now automatically implement ENHANCED CS- condition grouping:")
-    print("1. Detect the FIRST TRIAL of CS- conditions and keep as separate condition")
-    print("2. Group ALL OTHER CS- trials into single 'CS-_others' condition")
+    print("The workflows now automatically implement ENHANCED CS-_first_half condition grouping:")
+    print("1. Detect the FIRST TRIAL of CS-_first_half conditions and keep as separate condition")
+    print("2. Group ALL OTHER CS-_first_half trials into single 'CS-_first_half_others' condition")
     print("3. Handle ALL OTHER trial types as INDIVIDUAL conditions")
     print("4. Support multiple trial naming conventions:")
-    print("   - CS-US_1, CS-US_2, CS-US_3")
-    print("   - CS-US_trial1, CS-US_trial2, CS-US_trial3")
-    print("   - CS-US (single condition)")
+    print("   - CS-_first_half_1, CS-_first_half_2, CS-_first_half_3")
+    print("   - CS-_first_half_trial1, CS-_first_half_trial2, CS-_first_half_trial3")
+    print("   - CS-_first_half (single condition)")
     print("5. Create contrasts between:")
-    print("   - First CS- trial vs grouped CS- trials vs other conditions")
-    print("   - Grouped CS- trials vs other conditions")
+    print("   - First CS-_first_half trial vs grouped CS-_first_half trials vs other conditions")
+    print("   - Grouped CS-_first_half trials vs other conditions")
     print("   - All other trial types vs each other")
     print("6. Provide enhanced design matrix configuration for voxel-wise analysis")
-    print("7. Support comprehensive logging of enhanced CS- grouping strategy")
-    print("8. Enable sophisticated contrast analysis with proper CS- trial separation")
+    print("7. Support comprehensive logging of enhanced CS-_first_half grouping strategy")
+    print("8. Enable sophisticated contrast analysis with proper CS-_first_half trial separation")
     print("9. Use original condition names to ensure FSL compatibility")
