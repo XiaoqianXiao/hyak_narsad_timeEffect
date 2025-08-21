@@ -156,14 +156,14 @@ def get_condition_names_from_events(events_file):
                 raw_conditions = list(events_df['trial_type'].values)
                 
                 # Count CS- trials and create proper condition names
-                cs_count = raw_conditions.count('CS-')
+                cs_count = raw_conditions.count('CS-_first_half')
                 if cs_count > 1:
                     # Multiple CS- trials: split into CS-_first and CS-_others
-                    condition_names = ['CS-_first', 'CS-_others']
+                    condition_names = ['CS-_first_half_first', 'CS-_first_half_others']
                     # Add other unique conditions (excluding ONLY the exact 'CS-' condition)
-                    other_conditions = [c for c in set(raw_conditions) if c != 'CS-']
+                    other_conditions = [c for c in set(raw_conditions) if c != 'CS-_first_half']
                     condition_names.extend(other_conditions)
-                    logger.info(f"Split {cs_count} CS- trials into CS-_first and CS-_others. Total conditions: {len(condition_names)}")
+                    logger.info(f"Split {cs_count} CS-_first_half trials into CS-_first_half_first and CS-_first_half_others. Total conditions: {len(condition_names)}")
                     logger.info(f"Raw conditions: {raw_conditions}")
                     logger.info(f"Unique conditions: {list(set(raw_conditions))}")
                     logger.info(f"Other conditions found: {other_conditions}")
@@ -182,12 +182,12 @@ def get_condition_names_from_events(events_file):
                     if col in events_df.columns:
                         # Apply same CS- splitting logic to alternative columns
                         raw_conditions = list(events_df[col].values)
-                        cs_count = raw_conditions.count('CS-')
+                        cs_count = raw_conditions.count('CS-_first_half')
                         if cs_count > 1:
-                            condition_names = ['CS-_first', 'CS-_others']
-                            other_conditions = [c for c in set(raw_conditions) if c != 'CS-']
+                            condition_names = ['CS-_first_half_first', 'CS-_first_half_others']
+                            other_conditions = [c for c in set(raw_conditions) if c != 'CS-_first_half']
                             condition_names.extend(other_conditions)
-                            logger.info(f"Split {cs_count} CS- trials into CS-_first and CS-_others using column '{col}'. Total conditions: {len(condition_names)}")
+                            logger.info(f"Split {cs_count} CS-_first_half trials into CS-_first_half_first and CS-_first_half_others using column '{col}'. Total conditions: {len(condition_names)}")
                         else:
                             condition_names = sorted(events_df[col].unique().tolist())
                             logger.info(f"Using standard conditions from column '{col}': {len(condition_names)} total")
@@ -198,23 +198,6 @@ def get_condition_names_from_events(events_file):
                 logger.warning(f"No 'trial_type' or alternative column found in events file: {events_file}")
                 logger.warning(f"Available columns: {available_columns}")
                 
-                # If there are only a few columns, try to use the first non-numeric column
-                for col in available_columns:
-                    if not pd.api.types.is_numeric_dtype(events_df[col]):
-                        # Apply same CS- splitting logic
-                        raw_conditions = list(events_df[col].values)
-                        cs_count = raw_conditions.count('CS-')
-                        if cs_count > 1:
-                            condition_names = ['CS-_first', 'CS-_others']
-                            other_conditions = [c for c in set(raw_conditions) if c != 'CS-']
-                            condition_names.extend(other_conditions)
-                            logger.info(f"Split {cs_count} CS- trials into CS-_first and CS-_others using first non-numeric column '{col}'. Total conditions: {len(condition_names)}")
-                        else:
-                            condition_names = sorted(events_df[col].unique().tolist())
-                            logger.info(f"Using first non-numeric column '{col}' as condition names: {condition_names}")
-                        return condition_names
-                
-                logger.warning("No suitable column found for condition names")
         else:
             logger.warning(f"Events file does not exist: {events_file}")
     except Exception as e:
@@ -257,9 +240,9 @@ def get_events_file_path(sub, task):
     """
     # Handle special case for N202 phase3
     if sub == 'N202' and task == 'phase3':
-        events_file = os.path.join(BEHAV_DIR, 'task-NARSAD_phase-3_sub-202_events.csv')
+        events_file = os.path.join(BEHAV_DIR, 'task-NARSAD_phase-3_sub-202_half_events.csv')
     else:
-        events_file = os.path.join(BEHAV_DIR, f'task-Narsad_{task}_events.csv')
+        events_file = os.path.join(BEHAV_DIR, f'task-Narsad_{task}_half_events.csv')
     
     logger.info(f"Using events file: {events_file}")
     return events_file
@@ -340,8 +323,8 @@ def create_slurm_script(sub, inputs, work_dir, output_dir, task, container_path)
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=40G
 #SBATCH --time=2:00:00
-#SBATCH --output=/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/firstLevel/{task}_sub_{sub}_%j.out
-#SBATCH --error=/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/firstLevel/{task}_sub_{sub}_%j.err
+#SBATCH --output=/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/firstLevel_timeEffect/{task}_sub_{sub}_%j.out
+#SBATCH --error=/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/firstLevel_timeEffect/{task}_sub_{sub}_%j.err
 
 module load apptainer
 apptainer exec \\
@@ -410,7 +393,7 @@ def run_subject_workflow(sub, inputs, work_dir, output_dir, task):
         workflow.base_dir = os.path.join(work_dir, f'sub_{sub}')
         
         # Create output directory for this subject
-        subject_output_dir = os.path.join(output_dir, 'firstLevel', task, f'sub-{sub}')
+        subject_output_dir = os.path.join(output_dir, 'firstLevel_timeEffect', task, f'sub-{sub}')
         Path(subject_output_dir).mkdir(parents=True, exist_ok=True)
         
         logger.info(f"Running workflow for subject {sub}, task {task}")
@@ -491,7 +474,7 @@ def generate_slurm_scripts(layout, query):
         task = entities['task']
         
         # Create working directory
-        work_dir = os.path.join(SCRUBBED_DIR, PROJECT_NAME, f'work_flows/firstLevel/{task}')
+        work_dir = os.path.join(SCRUBBED_DIR, PROJECT_NAME, f'work_flows/firstLevel_timeEffect/{task}')
         Path(work_dir).mkdir(parents=True, exist_ok=True)
         
         try:
