@@ -344,6 +344,8 @@ apptainer exec \\
     -B /gscratch/fang:/data \\
     -B /gscratch/scrubbed/fanglab/xiaoqian:/scrubbed_dir \\
     -B /gscratch/scrubbed/fanglab/xiaoqian/repo/hyak_narsad_timeEffect/create_1st_voxelWise.py:/app/create_1st_voxelWise.py \\
+    -B /gscratch/scrubbed/fanglab/xiaoqian/repo/hyak_narsad_timeEffect/group_level_workflows.py:/app/group_level_workflows.py \\
+    -B /gscratch/scrubbed/fanglab/xiaoqian/repo/hyak_narsad_timeEffect/utils.py:/app/utils.py \\
     {container_path} \\
     python3 /app/create_1st_voxelWise.py --subject {sub} --task {task}
 """
