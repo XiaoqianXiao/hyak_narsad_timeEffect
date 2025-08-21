@@ -22,7 +22,7 @@
 # =============================================================================
 
 # Base directory for first-level scripts
-SCRIPTS_BASE_DIR="/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/firstLevel"
+SCRIPTS_BASE_DIR="/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/firstLevel_timeEffect"
 
 # Default settings
 PHASE=""
