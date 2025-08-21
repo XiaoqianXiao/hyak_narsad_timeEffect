@@ -100,6 +100,9 @@ def create_contrasts(condition_names, contrast_type='standard'):
     groups all other CS- trials together as one condition, and creates contrasts for
     all other trial types as individual conditions.
     
+    NOTE: CS-_first_half_first, all US* conditions, SHOCK, and FIXATION* are excluded from all copes 
+    (kept only for model fitting)
+    
     Args:
         condition_names (list): List of condition names
         contrast_type (str): Type of contrasts to create ('standard', 'minimal', 'custom')
@@ -118,24 +121,31 @@ def create_contrasts(condition_names, contrast_type='standard'):
     # Extract CS- conditions with grouping
     cs_first_trial, cs_other_trials, other_conditions = extract_cs_conditions(condition_names)
     
-    # Create list of all conditions for contrast generation
+    # Create list of all conditions for contrast generation (EXCLUDING cs_first_trial, US* conditions, SHOCK, and FIXATION*)
     all_contrast_conditions = []
-    if cs_first_trial:
-        all_contrast_conditions.append(cs_first_trial)  # CS-_first as separate condition
+    # NOTE: cs_first_trial is NOT added to contrast conditions - it exists only for model fitting
     if cs_other_trials:
-        # Group all other CS- trials into single 'CS-_others' condition
-        all_contrast_conditions.append('CS-_others')  # Single grouped condition for all other CS- trials
-    all_contrast_conditions.extend(other_conditions)
+        # Group all other CS- trials into single 'CS-_first_half_others' condition
+        all_contrast_conditions.append('CS-_first_half_others')  # Single grouped condition for all other CS- trials
+    
+    # Add other conditions EXCEPT US* conditions, SHOCK, and FIXATION*
+    for condition in other_conditions:
+        if not condition.startswith('US_') and condition != 'SHOCK' and not condition.startswith('FIXATION'):
+            all_contrast_conditions.append(condition)
     
     contrasts = []
     
     if contrast_type == 'minimal':
-        # Create simple contrasts for each condition vs baseline
-        for condition in all_contrast_conditions:
-            contrasts.append((f'{condition}>baseline', 'T', [condition], [1]))
+        # No baseline contrasts - only pairwise comparisons
+        # Create pairwise contrasts between all conditions (excluding cs_first_trial, US* conditions, SHOCK, and FIXATION*)
+        for i, cond1 in enumerate(all_contrast_conditions):
+            for j, cond2 in enumerate(all_contrast_conditions):
+                if i < j:  # Avoid duplicate contrasts
+                    contrasts.append((f'{cond1}>{cond2}', 'T', [cond1, cond2], [1, -1]))
+                    contrasts.append((f'{cond1}<{cond2}', 'T', [cond1, cond2], [-1, 1]))
     
     elif contrast_type == 'standard':
-        # Create pairwise contrasts between all conditions
+        # Create pairwise contrasts between all conditions (excluding cs_first_trial, US* conditions, SHOCK, and FIXATION*)
         for i, cond1 in enumerate(all_contrast_conditions):
             for j, cond2 in enumerate(all_contrast_conditions):
                 if i < j:  # Avoid duplicate contrasts
@@ -146,8 +156,8 @@ def create_contrasts(condition_names, contrast_type='standard'):
         # Define custom contrasts based on condition patterns
         if 'first_half' in str(other_conditions) and 'second_half' in str(other_conditions):
             # Split conditions by halves
-            first_half_conds = [c for c in other_conditions if 'first_half' in c]
-            second_half_conds = [c for c in other_conditions if 'second_half' in c]
+            first_half_conds = [c for c in other_conditions if 'first_half' in c and not c.startswith('US_') and c != 'SHOCK' and not c.startswith('FIXATION')]
+            second_half_conds = [c for c in other_conditions if 'second_half' in c and not c.startswith('US_') and c != 'SHOCK' and not c.startswith('FIXATION')]
             
             # Create contrasts between halves
             for f_cond in first_half_conds:
@@ -158,10 +168,19 @@ def create_contrasts(condition_names, contrast_type='standard'):
     
     logger.info(f"Generated {len(contrasts)} contrasts for {len(all_contrast_conditions)} conditions:")
     if cs_first_trial:
-        logger.info(f"  - First CS- trial: {cs_first_trial} (kept as separate condition)")
+        logger.info(f"  - First CS- trial: {cs_first_trial} (EXCLUDED from all copes - kept only for model fitting)")
     if cs_other_trials:
-        logger.info(f"  - Other CS- trials: {cs_other_trials} (grouped into single 'CS-_first_half_others' condition)")
-    logger.info(f"  - Other trial types: {other_conditions}")
+        logger.info(f"  - Other CS- trials: {cs_other_trials} (included in copes as 'CS-_first_half_others')")
+    
+    # Log which US* conditions, SHOCK, and FIXATION* were excluded
+    us_conditions = [c for c in other_conditions if c.startswith('US_')]
+    shock_conditions = [c for c in other_conditions if c == 'SHOCK']
+    fixation_conditions = [c for c in other_conditions if c.startswith('FIXATION')]
+    excluded_conditions = us_conditions + shock_conditions + fixation_conditions
+    if excluded_conditions:
+        logger.info(f"  - Conditions EXCLUDED from all copes: {excluded_conditions}")
+    
+    logger.info(f"  - Other trial types (included in copes): {[c for c in other_conditions if not c.startswith('US_') and c != 'SHOCK' and not c.startswith('FIXATION')]}")
     
     return contrasts, cs_first_trial, cs_other_trials, other_conditions
 
@@ -174,6 +193,9 @@ def create_cs_separated_contrasts(condition_names, contrast_type='standard'):
     1. First trial of CS- conditions is handled as a separate condition (keeps original name)
     2. All other CS- trials are kept as individual conditions (keeps original names)
     3. All other trial types are handled as individual conditions
+    
+    NOTE: CS-_first_half_first, all US* conditions, SHOCK, and FIXATION* are excluded from all copes 
+    (kept only for model fitting)
     
     Args:
         condition_names (list): List of condition names
@@ -195,7 +217,7 @@ def create_cs_separated_contrasts(condition_names, contrast_type='standard'):
             'first_trial': cs_first_trial,
             'other_trials': cs_other_trials,  # Grouped into single 'CS-' condition
             'regressor_type': 'enhanced_grouping',
-            'description': 'First trial CS-_first_half kept separate, other CS-_first_half trials grouped into single CS-_first_half_others condition',
+            'description': 'First trial CS-_first_half, all US* conditions, SHOCK, and FIXATION* kept separate for model fitting but excluded from all copes, other CS-_first_half trials grouped into single CS-_first_half_others condition',
             'contrast_included': True,
             'grouping_strategy': 'first_trial_separate_others_grouped',
             'condition_names': {
@@ -206,7 +228,7 @@ def create_cs_separated_contrasts(condition_names, contrast_type='standard'):
         }
         logger.info(f"Enhanced CS- condition grouping configured:")
         if cs_first_trial:
-            logger.info(f"  - First trial '{cs_first_trial}' kept as separate condition")
+            logger.info(f"  - First trial '{cs_first_trial}' kept as separate condition but EXCLUDED from all copes")
         if cs_other_trials:
             logger.info(f"  - Other CS- trials grouped into single 'CS-_first_half_others' condition: {cs_other_trials}")
     
@@ -218,6 +240,9 @@ def create_custom_contrasts(condition_names, contrast_patterns):
     Create custom contrasts based on specific patterns with enhanced CS- grouping.
     
     This function also implements the enhanced CS- condition grouping strategy.
+    
+    NOTE: CS-_first_half_first, all US* conditions, SHOCK, and FIXATION* are excluded from all copes 
+    (kept only for model fitting)
     
     Args:
         condition_names (list): List of condition names
@@ -237,14 +262,17 @@ def create_custom_contrasts(condition_names, contrast_patterns):
     # Extract CS- conditions with enhanced grouping
     cs_first_trial, cs_other_trials, other_conditions = extract_cs_conditions(condition_names)
     
-    # Create list of all conditions for contrast generation
+    # Create list of all conditions for contrast generation (EXCLUDING cs_first_trial, US* conditions, SHOCK, and FIXATION*)
     all_contrast_conditions = []
-    if cs_first_trial:
-        all_contrast_conditions.append(cs_first_trial)  # CS-_first as separate condition
+    # NOTE: cs_first_trial is NOT added to contrast conditions - it exists only for model fitting
     if cs_other_trials:
-        # Group all other CS- trials into single 'CS-_others' condition
-        all_contrast_conditions.append('CS-_others')  # Single grouped condition for all other CS- trials
-    all_contrast_conditions.extend(other_conditions)
+        # Group all other CS- trials into single 'CS-_first_half_others' condition
+        all_contrast_conditions.append('CS-_first_half_others')  # Single grouped condition for all other CS- trials
+    
+    # Add other conditions EXCEPT US* conditions, SHOCK, and FIXATION*
+    for condition in other_conditions:
+        if not condition.startswith('US_') and condition != 'SHOCK' and not condition.startswith('FIXATION'):
+            all_contrast_conditions.append(condition)
     
     contrasts = []
     for pattern in contrast_patterns:
@@ -284,10 +312,19 @@ def create_custom_contrasts(condition_names, contrast_patterns):
     
     logger.info(f"Generated {len(contrasts)} custom contrasts with enhanced CS- grouping:")
     if cs_first_trial:
-        logger.info(f"  - First CS- trial: {cs_first_trial} (kept as separate condition)")
+        logger.info(f"  - First CS- trial: {cs_first_trial} (EXCLUDED from all copes - kept only for model fitting)")
     if cs_other_trials:
-        logger.info(f"  - Other CS- trials: {cs_other_trials} (grouped into single 'CS-_first_half_others' condition)")
-    logger.info(f"  - Other trial types: {other_conditions}")
+        logger.info(f"  - Other CS- trials: {cs_other_trials} (included in copes as 'CS-_first_half_others')")
+    
+    # Log which US* conditions, SHOCK, and FIXATION* were excluded
+    us_conditions = [c for c in other_conditions if c.startswith('US_')]
+    shock_conditions = [c for c in other_conditions if c == 'SHOCK']
+    fixation_conditions = [c for c in other_conditions if c.startswith('FIXATION')]
+    excluded_conditions = us_conditions + shock_conditions + fixation_conditions
+    if excluded_conditions:
+        logger.info(f"  - Conditions EXCLUDED from all copes: {excluded_conditions}")
+    
+    logger.info(f"  - Other trial types (included in copes): {[c for c in other_conditions if not c.startswith('US_') and c != 'SHOCK' and not c.startswith('FIXATION')]}")
     
     return contrasts, cs_first_trial, cs_other_trials, other_conditions
 

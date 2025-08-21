@@ -78,22 +78,12 @@ def _bids2nipypeinfo(in_file, events_file, regressors_file,
         bunch_fields += ['regressor_names']
         bunch_fields += ['regressors']
 
-    # Create conditions list with proper CS- splitting
+    # Create conditions list - no CS- splitting needed
     raw_conditions = list(events[condition_column].values)
     
-    # Count CS- trials and create proper condition names
-    cs_count = raw_conditions.count('CS-_first_half')
-    if cs_count > 1:
-        # Multiple CS- trials: split into CS-_first_half_first and CS-_first_half_others
-        conditions = ['CS-_first_half_first', 'CS-_first_half_others']
-        # Add other unique conditions (excluding CS-_first_half)
-        other_conditions = [c for c in set(raw_conditions) if c != 'CS-_first_half']
-        conditions.extend(other_conditions)
-        print(f"Split {cs_count} CS-_first_half trials into CS-_first_half_first and CS-_first_half_others. Total conditions: {len(conditions)}")
-    else:
-        # Single or no CS- trials: use original logic
-        conditions = list(set(raw_conditions))
-        print(f"Using standard conditions: {len(conditions)} total")
+    # Use all conditions as-is (no special CS- splitting)
+    conditions = list(set(raw_conditions))
+    print(f"Using standard conditions: {len(conditions)} total")
     
     runinfo = Bunch(
         scans=in_file,
@@ -101,49 +91,14 @@ def _bids2nipypeinfo(in_file, events_file, regressors_file,
         **{k: [] for k in bunch_fields})
 
     for condition in runinfo.conditions:
-        if condition == 'CS-_first_half_first':
-            # First CS- trial: get the first occurrence
-            cs_events = events[events[condition_column] == 'CS-_first_half']
-            if len(cs_events) > 0:
-                first_cs = cs_events.iloc[0:1]  # Get first CS- trial
-                runinfo.onsets.append(np.round(first_cs.onset.values, 3).tolist())
-                runinfo.durations.append(np.round(first_cs.duration.values, 3).tolist())
-                if 'amplitudes' in events.columns:
-                    runinfo.amplitudes.append(np.round(first_cs.amplitudes.values, 3).tolist())
-                else:
-                    runinfo.amplitudes.append([amplitude] * len(first_cs))
-            else:
-                # Fallback if no CS- trials found
-                runinfo.onsets.append([])
-                runinfo.durations.append([])
-                runinfo.amplitudes.append([])
-                
-        elif condition == 'CS-_first_half_others':
-            # Other CS- trials: get all except the first
-            cs_events = events[events[condition_column] == 'CS-_first_half']
-            if len(cs_events) > 1:
-                other_cs = cs_events.iloc[1:]  # Get all CS- trials except first
-                runinfo.onsets.append(np.round(other_cs.onset.values, 3).tolist())
-                runinfo.durations.append(np.round(other_cs.duration.values, 3).tolist())
-                if 'amplitudes' in events.columns:
-                    runinfo.amplitudes.append(np.round(other_cs.amplitudes.values, 3).tolist())
-                else:
-                    runinfo.amplitudes.append([amplitude] * len(other_cs))
-            else:
-                # Fallback if only 1 CS- trial
-                runinfo.onsets.append([])
-                runinfo.durations.append([])
-                runinfo.amplitudes.append([])
-                
+        # Regular condition processing for all conditions
+        event = events[events[condition_column].str.match(str(condition))]
+        runinfo.onsets.append(np.round(event.onset.values, 3).tolist())
+        runinfo.durations.append(np.round(event.duration.values, 3).tolist())
+        if 'amplitudes' in events.columns:
+            runinfo.amplitudes.append(np.round(event.amplitudes.values, 3).tolist())
         else:
-            # Regular condition: use original logic
-            event = events[events[condition_column].str.match(str(condition))]
-            runinfo.onsets.append(np.round(event.onset.values, 3).tolist())
-            runinfo.durations.append(np.round(event.duration.values, 3).tolist())
-            if 'amplitudes' in events.columns:
-                runinfo.amplitudes.append(np.round(event.amplitudes.values, 3).tolist())
-            else:
-                runinfo.amplitudes.append([amplitude] * len(event))
+            runinfo.amplitudes.append([amplitude] * len(event))
 
     if 'regressor_names' in bunch_fields:
         runinfo.regressor_names = regressors_names
