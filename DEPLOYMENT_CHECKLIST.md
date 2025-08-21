@@ -64,7 +64,7 @@ python3 create_1st_voxelWise.py
 ## 📁 File Structure
 
 ```
-hyak_narsad_time_effect/
+hyak_narsad_timeEffect/
 ├── create_1st_voxelWise.py      # Main script for generating SLURM jobs
 ├── first_level_workflows.py     # Nipype workflow definitions
 ├── utils.py                     # Utility functions for data processing
@@ -77,7 +77,7 @@ hyak_narsad_time_effect/
 
 ### Container Path
 - **Container**: `narsad-fmri_timeEffect_1.0.sif`
-- **Base Image**: `narsad-fmri_1st_level_0.0.sif` (referenced in .def file)
+- **Base Image**: `narsad-fmri_timeEffect_0.0.sif` (referenced in .def file)
 
 ### Working Directories
 - **First Level Scripts**: `/gscratch/scrubbed/fanglab/xiaoqian/NARSAD/work_flows/firstLevel_timeEffect`
@@ -93,10 +93,11 @@ hyak_narsad_time_effect/
 
 ## ⚠️ Important Notes
 
-1. **Container Dependencies**: Ensure the base image `narsad-fmri_1st_level_0.0.sif` exists before building
+1. **Container Dependencies**: Ensure the base image `narsad-fmri_timeEffect_0.0.sif` exists before building
 2. **File Permissions**: The launcher script will automatically make SLURM scripts executable
 3. **Path Consistency**: All paths are now correctly aligned between script generation and launching
 4. **Condition Handling**: CS-_first_half trials are automatically split into first trial and others for proper analysis
+5. **Repository Paths**: All scripts now correctly mount from `hyak_narsad_timeEffect` instead of `hyak_narsad` - this was critical for resolving the condition naming mismatch
 
 ## 🧪 Testing Commands
 

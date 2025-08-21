@@ -343,7 +343,7 @@ export PYTHONPATH=/app:$PYTHONPATH
 apptainer exec \\
     -B /gscratch/fang:/data \\
     -B /gscratch/scrubbed/fanglab/xiaoqian:/scrubbed_dir \\
-    -B /gscratch/scrubbed/fanglab/xiaoqian/repo/hyak_narsad/create_1st_voxelWise.py:/app/create_1st_voxelWise.py \\
+    -B /gscratch/scrubbed/fanglab/xiaoqian/repo/hyak_narsad_timeEffect/create_1st_voxelWise.py:/app/create_1st_voxelWise.py \\
     {container_path} \\
     python3 /app/create_1st_voxelWise.py --subject {sub} --task {task}
 """

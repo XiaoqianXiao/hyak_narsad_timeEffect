@@ -110,7 +110,7 @@ get_available_copes() {
 # =============================================================================
 
 # Single container for all data sources
-CONTAINER_PATH="/gscratch/scrubbed/fanglab/xiaoqian/images/narsad-fmri_1st_level_1.0.sif"
+CONTAINER_PATH="/gscratch/scrubbed/fanglab/xiaoqian/images/narsad-fmri_timeEffect_1.0.sif"
 
 # =============================================================================
 # DATA SOURCE CONFIGURATIONS
@@ -349,7 +349,7 @@ for task in "${TASKS[@]}"; do
 #SBATCH --error=${err_path}
 
 module load apptainer
-apptainer exec -B /gscratch/fang:/data -B /gscratch/scrubbed/fanglab/xiaoqian:/scrubbed_dir -B /gscratch/scrubbed/fanglab/xiaoqian/repo/hyak_narsad/group_level_workflows.py:/app/group_level_workflows.py -B /gscratch/scrubbed/fanglab/xiaoqian/repo/hyak_narsad/run_group_voxelWise.py:/app/run_group_voxelWise.py ${CONTAINER_PATH} \\
+apptainer exec -B /gscratch/fang:/data -B /gscratch/scrubbed/fanglab/xiaoqian:/scrubbed_dir -B /gscratch/scrubbed/fanglab/xiaoqian/repo/hyak_narsad_timeEffect/group_level_workflows.py:/app/group_level_workflows.py -B /gscratch/scrubbed/fanglab/xiaoqian/repo/hyak_narsad_timeEffect/run_group_voxelWise.py:/app/run_group_voxelWise.py ${CONTAINER_PATH} \\
     python3 /app/${SCRIPT_NAME} \\
     --task ${task} \\
     --contrast ${contrast} \\
