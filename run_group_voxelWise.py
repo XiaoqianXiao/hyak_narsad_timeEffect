@@ -267,13 +267,34 @@ def run_group_level_workflow(task, contrast, analysis_type, paths, data_source_c
                         return os.path.join(root, target_dir)
                 return None
             
+            # Debug: List all directories found in the workflow output
+            logger.info(f"All directories found in workflow output:")
+            for root, dirs, files in os.walk(workflow_output_dir):
+                for dir_name in dirs:
+                    logger.info(f"  Found directory: {os.path.join(root, dir_name)}")
+            
+            # Special handling for cluster_results - look in common FLAMEO locations
+            if 'cluster_results' not in found_dirs:
+                logger.info("cluster_results not found at top level, checking common FLAMEO locations...")
+                # Look for cluster_results in common FLAMEO subdirectories
+                common_locations = ['clustering', 'flameo', 'datasink']
+                for loc in common_locations:
+                    loc_path = os.path.join(workflow_output_dir, loc)
+                    if os.path.exists(loc_path):
+                        cluster_in_loc = find_subdir_recursive(loc_path, 'cluster_results')
+                        if cluster_in_loc:
+                            found_dirs['cluster_results'] = cluster_in_loc
+                            logger.info(f"Found cluster_results in {loc} subdirectory: {cluster_in_loc}")
+                            break
+            
             for subdir in result_subdirs:
-                source_path = find_subdir_recursive(workflow_output_dir, subdir)
-                if source_path:
-                    found_dirs[subdir] = source_path
-                    logger.info(f"Found {subdir} directory at: {source_path}")
-                else:
-                    logger.info(f"Subdirectory {subdir} not found, will skip")
+                if subdir not in found_dirs:
+                    source_path = find_subdir_recursive(workflow_output_dir, subdir)
+                    if source_path:
+                        found_dirs[subdir] = source_path
+                        logger.info(f"Found {subdir} directory at: {source_path}")
+                    else:
+                        logger.info(f"Subdirectory {subdir} not found, will skip")
             
             # Create final results directory if it doesn't exist
             Path(paths['result_dir']).mkdir(parents=True, exist_ok=True)
@@ -284,6 +305,7 @@ def run_group_level_workflow(task, contrast, analysis_type, paths, data_source_c
                 logger.info(f"About to copy specific result directories from {workflow_output_dir} to {paths['result_dir']}")
                 
                 # Define which subdirectories to copy (only the actual results)
+                # Note: FLAMEO creates 'stats' and 'cluster_results', Randomise creates 'randomise'
                 result_subdirs = ['stats', 'cluster_results', 'randomise']
                 
                 # Copy each result subdirectory if it was found
