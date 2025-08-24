@@ -273,7 +273,16 @@ def run_group_level_workflow(task, contrast, analysis_type, paths, data_source_c
                 for dir_name in dirs:
                     logger.info(f"  Found directory: {os.path.join(root, dir_name)}")
             
-            # Special handling for cluster_results - look in common FLAMEO locations
+            # First, search for all required subdirectories
+            for subdir in result_subdirs:
+                source_path = find_subdir_recursive(workflow_output_dir, subdir)
+                if source_path:
+                    found_dirs[subdir] = source_path
+                    logger.info(f"Found {subdir} directory at: {source_path}")
+                else:
+                    logger.info(f"Subdirectory {subdir} not found, will skip")
+            
+            # Special handling for cluster_results - look in common FLAMEO locations if not found
             if 'cluster_results' not in found_dirs:
                 logger.info("cluster_results not found at top level, checking common FLAMEO locations...")
                 # Look for cluster_results in common FLAMEO subdirectories
@@ -286,15 +295,6 @@ def run_group_level_workflow(task, contrast, analysis_type, paths, data_source_c
                             found_dirs['cluster_results'] = cluster_in_loc
                             logger.info(f"Found cluster_results in {loc} subdirectory: {cluster_in_loc}")
                             break
-            
-            for subdir in result_subdirs:
-                if subdir not in found_dirs:
-                    source_path = find_subdir_recursive(workflow_output_dir, subdir)
-                    if source_path:
-                        found_dirs[subdir] = source_path
-                        logger.info(f"Found {subdir} directory at: {source_path}")
-                    else:
-                        logger.info(f"Subdirectory {subdir} not found, will skip")
             
             # Create final results directory if it doesn't exist
             Path(paths['result_dir']).mkdir(parents=True, exist_ok=True)
