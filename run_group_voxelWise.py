@@ -86,7 +86,7 @@ DATA_SOURCE_CONFIGS = {
         'requires_varcope': True,
         'requires_grp': True,
         'results_subdir': 'groupLevel_timeEffect/whole_brain/Placebo',
-        'workflows_subdir': 'groupLevel_timeEffect/whole_brain/Placebo',
+        'workflows_subdir': 'whole_brain/Placebo',
         'script_name': 'run_group_voxelWise.py'
     },
     'Guess': {
@@ -94,7 +94,7 @@ DATA_SOURCE_CONFIGS = {
         'requires_varcope': True,
         'requires_grp': True,
         'results_subdir': 'groupLevel_timeEffect/whole_brain/Guess',
-        'workflows_subdir': 'groupLevel_timeEffect/whole_brain/Guess',
+        'workflows_subdir': 'whole_brain/Guess',
         'script_name': 'run_group_voxelWise.py'
     }
 }
@@ -376,6 +376,7 @@ def get_standard_paths(task, contrast, base_dir, data_source):
     
     # Set up directories
     results_dir = os.path.join(base_dir, data_source_config['results_subdir'])
+    # workflows_subdir now contains 'whole_brain[/Placebo]', so we add 'groupLevel_timeEffect' here
     workflows_dir = os.path.join(SCRUBBED_DIR, PROJECT_NAME, 'work_flows', 'groupLevel_timeEffect', data_source_config['workflows_subdir'])
     
     # Use TemplateFlow to get group mask path
