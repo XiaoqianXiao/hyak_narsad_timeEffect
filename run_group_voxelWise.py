@@ -273,14 +273,23 @@ def run_group_level_workflow(task, contrast, analysis_type, paths, data_source_c
                 for dir_name in dirs:
                     logger.info(f"  Found directory: {os.path.join(root, dir_name)}")
             
-            # First, search for all required subdirectories
+            # First, search for all required subdirectories in BOTH locations
+            # 1. Main workflow directory (where cluster_results and stats typically exist)
+            # 2. Nested workflow output directory (where some results might be nested)
             for subdir in result_subdirs:
-                source_path = find_subdir_recursive(workflow_output_dir, subdir)
+                # First try main workflow directory
+                source_path = find_subdir_recursive(paths['workflow_dir'], subdir)
                 if source_path:
                     found_dirs[subdir] = source_path
-                    logger.info(f"Found {subdir} directory at: {source_path}")
+                    logger.info(f"Found {subdir} directory at: {source_path} (in main workflow directory)")
                 else:
-                    logger.info(f"Subdirectory {subdir} not found, will skip")
+                    # If not found in main directory, try nested workflow output directory
+                    source_path = find_subdir_recursive(workflow_output_dir, subdir)
+                    if source_path:
+                        found_dirs[subdir] = source_path
+                        logger.info(f"Found {subdir} directory at: {source_path} (in nested workflow directory)")
+                    else:
+                        logger.info(f"Subdirectory {subdir} not found in either location, will skip")
             
             # Special handling for cluster_results - look in common FLAMEO locations if not found
             if 'cluster_results' not in found_dirs:
