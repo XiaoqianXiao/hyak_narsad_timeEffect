@@ -78,10 +78,10 @@ DATA_SOURCE_CONFIGS = {
         'requires_varcope': True,
         'requires_grp': True,
         'results_subdir': 'groupLevel_timeEffect/whole_brain',
-        'workflows_subdir': 'groupLevel_timeEffect/whole_brain',
+        'workflows_subdir': 'whole_brain',
         'script_name': 'run_group_voxelWise.py'
     },
-    'Placebo': {
+    'placebo': {
         'description': 'Placebo-specific group-level analysis',
         'requires_varcope': True,
         'requires_grp': True,
@@ -89,7 +89,7 @@ DATA_SOURCE_CONFIGS = {
         'workflows_subdir': 'whole_brain/Placebo',
         'script_name': 'run_group_voxelWise.py'
     },
-    'Guess': {
+    'guess': {
         'description': 'Guess-specific group-level analysis',
         'requires_varcope': True,
         'requires_grp': True,
@@ -507,7 +507,7 @@ Examples:
     parser.add_argument('--analysis-type', default='randomise', choices=['randomise', 'flameo'],
                        help='Analysis type: randomise (non-parametric) or flameo (parametric)')
     parser.add_argument('--data-source', default='standard', choices=['standard', 'placebo', 'guess'],
-                       help='Data source type (default: standard)')
+                       help='Data source type: standard, placebo, or guess (default: standard)')
     parser.add_argument('--custom-paths', action='store_true',
                        help='Use custom file paths instead of standard structure')
     
